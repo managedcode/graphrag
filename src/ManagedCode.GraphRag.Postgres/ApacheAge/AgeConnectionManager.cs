@@ -137,10 +137,9 @@ public sealed class AgeConnectionManager : IAgeConnectionManager
             checkCommand.CommandTimeout = 0;
             var result = await checkCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
-            if (result is not null)
+            if (result is null)
             {
-                LogMessages.ExtensionLoaded(_logger, ConnectionString);
-                return;
+                throw new AgeException("AGE extension is not installed.");
             }
 
             await using var load = connection.CreateCommand();
@@ -151,6 +150,18 @@ public sealed class AgeConnectionManager : IAgeConnectionManager
         }
         catch (PostgresException ex) when (ex.SqlState == "42501")
         {
+            await using var initCommand = connection.CreateCommand();
+            initCommand.CommandText = "SELECT ag_catalog.create_graph('__age_init__'); SELECT ag_catalog.drop_graph('__age_init__', true);";
+            initCommand.CommandTimeout = 0;
+
+            try
+            {
+                await initCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (PostgresException)
+            {
+            }
+
             LogMessages.ExtensionLoaded(_logger, ConnectionString);
         }
         catch (PostgresException ex)
