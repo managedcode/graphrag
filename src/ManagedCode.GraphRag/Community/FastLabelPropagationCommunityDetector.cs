@@ -23,15 +23,16 @@ internal static class FastLabelPropagationCommunityDetector
 
         var random = new Random(config.Seed);
         var labels = adjacency.Keys.ToDictionary(node => node, node => node, StringComparer.OrdinalIgnoreCase);
-        var nodes = adjacency.Keys.ToList();
+        var nodes = adjacency.Keys.ToArray();
         var maxIterations = Math.Max(1, config.MaxIterations);
 
         for (var iteration = 0; iteration < maxIterations; iteration++)
         {
-            var shuffled = nodes.OrderBy(_ => random.Next()).ToList();
+            random.Shuffle(nodes);
             var changed = false;
 
-            foreach (var node in shuffled)
+            var labelWeights = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+            foreach (var node in nodes)
             {
                 var neighbors = adjacency[node];
                 if (neighbors.Count == 0)
@@ -39,7 +40,6 @@ internal static class FastLabelPropagationCommunityDetector
                     continue;
                 }
 
-                var labelWeights = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
                 foreach (var (neighbor, weight) in neighbors)
                 {
                     if (!labels.TryGetValue(neighbor, out var neighborLabel))
@@ -57,7 +57,7 @@ internal static class FastLabelPropagationCommunityDetector
 
                 var maxWeight = labelWeights.Values.Max();
                 var candidates = labelWeights
-                    .Where(pair => Math.Abs(pair.Value - maxWeight) < 1e-6)
+                    .Where(pair => Math.Abs(pair.Value - maxWeight) < double.Epsilon)
                     .Select(pair => pair.Key)
                     .ToList();
 
@@ -70,6 +70,8 @@ internal static class FastLabelPropagationCommunityDetector
                     labels[node] = chosen;
                     changed = true;
                 }
+
+                labelWeights.Clear();
             }
 
             if (!changed)
