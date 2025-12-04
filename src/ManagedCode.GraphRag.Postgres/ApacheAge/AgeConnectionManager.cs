@@ -132,10 +132,36 @@ public sealed class AgeConnectionManager : IAgeConnectionManager
     {
         try
         {
+            await using var checkCommand = connection.CreateCommand();
+            checkCommand.CommandText = "SELECT 1 FROM pg_extension WHERE extname = 'age';";
+            checkCommand.CommandTimeout = 0;
+            var result = await checkCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+
+            if (result is null)
+            {
+                throw new AgeException("AGE extension is not installed.");
+            }
+
             await using var load = connection.CreateCommand();
             load.CommandText = "LOAD 'age';";
             load.CommandTimeout = 0;
             await load.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            LogMessages.ExtensionLoaded(_logger, ConnectionString);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "42501")
+        {
+            await using var initCommand = connection.CreateCommand();
+            initCommand.CommandText = "SELECT ag_catalog.create_graph('__age_init__'); SELECT ag_catalog.drop_graph('__age_init__', true);";
+            initCommand.CommandTimeout = 0;
+
+            try
+            {
+                await initCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (PostgresException)
+            {
+            }
+
             LogMessages.ExtensionLoaded(_logger, ConnectionString);
         }
         catch (PostgresException ex)
