@@ -135,12 +135,7 @@ public sealed class AgeConnectionManager : IAgeConnectionManager
             await using var checkCommand = connection.CreateCommand();
             checkCommand.CommandText = "SELECT 1 FROM pg_extension WHERE extname = 'age';";
             checkCommand.CommandTimeout = 0;
-            var result = await checkCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-
-            if (result is null)
-            {
-                throw new AgeException("AGE extension is not installed.");
-            }
+            var result = await checkCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) ?? throw new AgeException("AGE extension is not installed.");
 
             await using var load = connection.CreateCommand();
             load.CommandText = "LOAD 'age';";
