@@ -30,7 +30,10 @@ public static class Hashing
 
     private static void AppendStringChunked(IncrementalHash hasher, string? value, Span<byte> buffer)
     {
-        if (string.IsNullOrEmpty(value)) return;
+        if (string.IsNullOrEmpty(value))
+        {
+            return;
+        }
 
         var remaining = value.AsSpan();
 

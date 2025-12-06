@@ -5,8 +5,8 @@ using GraphRag.Graphs;
 using GraphRag.Storage.Postgres.ApacheAge;
 using GraphRag.Storage.Postgres.ApacheAge.Types;
 using ManagedCode.GraphRag.Tests.Integration;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 
 namespace ManagedCode.GraphRag.Tests.Storage.Postgres;

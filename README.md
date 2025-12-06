@@ -1,5 +1,13 @@
 # GraphRAG for .NET
 
+[![NuGet](https://img.shields.io/nuget/v/ManagedCode.GraphRag.svg)](https://www.nuget.org/packages/ManagedCode.GraphRag/)
+[![NuGet Neo4j](https://img.shields.io/nuget/v/ManagedCode.GraphRag.Neo4j.svg?label=Neo4j)](https://www.nuget.org/packages/ManagedCode.GraphRag.Neo4j/)
+[![NuGet Postgres](https://img.shields.io/nuget/v/ManagedCode.GraphRag.Postgres.svg?label=Postgres)](https://www.nuget.org/packages/ManagedCode.GraphRag.Postgres/)
+[![NuGet CosmosDb](https://img.shields.io/nuget/v/ManagedCode.GraphRag.CosmosDb.svg?label=CosmosDb)](https://www.nuget.org/packages/ManagedCode.GraphRag.CosmosDb/)
+[![NuGet JanusGraph](https://img.shields.io/nuget/v/ManagedCode.GraphRag.JanusGraph.svg?label=JanusGraph)](https://www.nuget.org/packages/ManagedCode.GraphRag.JanusGraph/)
+[![Build Status](https://github.com/managedcode/graphrag/actions/workflows/ci.yml/badge.svg)](https://github.com/managedcode/graphrag/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 GraphRAG for .NET is a ground-up port of Microsoft's GraphRAG reference implementation to the modern .NET 10 stack. The port keeps parity with the original Python pipelines while embracing native .NET idioms—dependency injection, logging abstractions, async I/O, and strongly-typed configuration.
 
 > ℹ️ The upstream Python code remains available under [`submodules/graphrag-python`](submodules/graphrag-python) for side-by-side reference. Treat it as read-only unless a task explicitly targets the submodule.
