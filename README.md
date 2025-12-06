@@ -398,19 +398,19 @@ The Cosmos adapter (`ManagedCode.GraphRag.CosmosDb`) targets the SQL API and wor
 1. **Provide a connection string.** Set `COSMOS_EMULATOR_CONNECTION_STRING` or configure options manually.
 2. **Register the store.**
    ```csharp
-builder.Services.AddCosmosGraphStore("cosmos", options =>
-{
-    options.ConnectionString = cosmosConnectionString;
-    options.DatabaseId = "GraphRagIntegration";
-    options.NodesContainerId = "nodes";
-    options.EdgesContainerId = "edges";
-    options.ConfigureClientOptions = clientOptions =>
-    {
-        clientOptions.GatewayModeMaxConnectionLimit = 100;
-    };
-    options.ConfigureSerializer = serializer => serializer.PropertyNamingPolicy = null;
-});
-```
+   builder.Services.AddCosmosGraphStore("cosmos", options =>
+   {
+       options.ConnectionString = cosmosConnectionString;
+       options.DatabaseId = "GraphRagIntegration";
+       options.NodesContainerId = "nodes";
+       options.EdgesContainerId = "edges";
+       options.ConfigureClientOptions = clientOptions =>
+       {
+           clientOptions.GatewayModeMaxConnectionLimit = 100;
+       };
+       options.ConfigureSerializer = serializer => serializer.PropertyNamingPolicy = null;
+   });
+   ```
    As with other adapters, the first Cosmos store becomes the unkeyed default. If you already have a `CosmosClient`, set `options.ClientFactory` to return it and GraphRAG will reuse that instance.
 
 > **Tip:** `IGraphStore` now exposes full graph inspection and mutation helpers (`GetNodesAsync`, `GetRelationshipsAsync`, `DeleteNodesAsync`, `DeleteRelationshipsAsync`) in addition to the targeted APIs (`InitializeAsync`, `Upsert*`, `GetOutgoingRelationshipsAsync`). These use the same AGE-powered primitives, so you can inspect, prune, or export the graph without dropping down to concrete implementations.
