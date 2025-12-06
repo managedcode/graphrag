@@ -8,6 +8,7 @@ using GraphRag.Relationships;
 namespace ManagedCode.GraphRag.Benchmarks.Community;
 
 [MemoryDiagnoser]
+[HideColumns("Error", "StdDev", "RatioSD")]
 public class FastLabelPropagationBenchmarks
 {
     private EntityRecord[] _smallGraphEntities = null!;
@@ -41,7 +42,7 @@ public class FastLabelPropagationBenchmarks
         (_largeGraphEntities, _largeGraphRelationships) = GenerateGraph(10_000, 5);
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public IReadOnlyDictionary<string, string> SmallGraph()
     {
         return FastLabelPropagationCommunityDetector.AssignLabels(
