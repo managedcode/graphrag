@@ -5,6 +5,7 @@ using GraphRag.Config;
 namespace ManagedCode.GraphRag.Benchmarks.Chunking;
 
 [MemoryDiagnoser]
+[HideColumns("Error", "StdDev", "RatioSD")]
 public class TokenTextChunkerBenchmarks
 {
     private TokenTextChunker _chunker = null!;
@@ -36,7 +37,7 @@ public class TokenTextChunkerBenchmarks
         _largeDocument = new[] { new ChunkSlice("doc1", GeneratePlainTextDocument(1_000_000)) };
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public IReadOnlyList<TextChunk> ChunkSmallDocument()
     {
         return _chunker.Chunk(_smallDocument, _config);
