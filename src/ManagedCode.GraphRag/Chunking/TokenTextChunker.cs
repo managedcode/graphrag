@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Runtime.InteropServices;
 using GraphRag.Config;
 using GraphRag.Tokenization;
 
@@ -12,48 +14,62 @@ public sealed class TokenTextChunker : ITextChunker
 
         if (slices.Count == 0)
         {
-            return Array.Empty<TextChunk>();
+            return [];
         }
 
         var tokenizer = TokenizerRegistry.GetTokenizer(config.EncodingModel);
         var flattened = new List<(int SliceIndex, int Token)>();
+
         for (var index = 0; index < slices.Count; index++)
         {
             var slice = slices[index];
-            var encoded = tokenizer.EncodeToIds(slice.Text);
-            foreach (var token in encoded)
+            var encoded = tokenizer.EncodeToIds(slice.Text.AsSpan());
+            for (var i = 0; i < encoded.Count; i++)
             {
+                var token = encoded[i];
                 flattened.Add((index, token));
             }
         }
 
         if (flattened.Count == 0)
         {
-            return Array.Empty<TextChunk>();
+            return [];
         }
 
         var chunkSize = Math.Max(1, config.Size);
         var overlap = Math.Clamp(config.Overlap, 0, chunkSize - 1);
-        var results = new List<TextChunk>();
+
+        var step = chunkSize - overlap;
+        var estimatedChunks = (flattened.Count + step - 1) / step;
+        var results = new List<TextChunk>(estimatedChunks);
+
+        var documentIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         var start = 0;
         while (start < flattened.Count)
         {
             var end = Math.Min(flattened.Count, start + chunkSize);
-            var chunkTokens = flattened.GetRange(start, end - start);
-            var tokenValues = new int[chunkTokens.Count];
-            for (var i = 0; i < chunkTokens.Count; i++)
+            var chunkTokens = CollectionsMarshal.AsSpan(flattened).Slice(start, end - start);
+            var tokenValues = ArrayPool<int>.Shared.Rent(chunkTokens.Length);
+            documentIds.Clear();
+
+            var lastSliceIndex = -1;
+            for (var i = 0; i < chunkTokens.Length; i++)
             {
+                var sliceIndex = chunkTokens[i].SliceIndex;
                 tokenValues[i] = chunkTokens[i].Token;
+
+                if (sliceIndex != lastSliceIndex)
+                {
+                    documentIds.Add(slices[sliceIndex].DocumentId);
+                    lastSliceIndex = sliceIndex;
+                }
             }
 
-            var decoded = tokenizer.Decode(tokenValues);
-            var documentIds = chunkTokens
-                .Select(tuple => slices[tuple.SliceIndex].DocumentId)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToArray();
+            var decoded = tokenizer.Decode(new ArraySegment<int>(tokenValues, 0, chunkTokens.Length));
+            results.Add(new TextChunk(documentIds.ToList(), decoded, chunkTokens.Length));
 
-            results.Add(new TextChunk(documentIds, decoded, tokenValues.Length));
+            ArrayPool<int>.Shared.Return(tokenValues);
 
             if (end >= flattened.Count)
             {
