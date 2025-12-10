@@ -270,7 +270,7 @@ public sealed class MarkdownTextChunker : ITextChunker
             index += nextPotential;
 
             // Try to match a separator at this position
-            var matchLength = separators.MatchLongestOptimized(span, index);
+            var matchLength = separators.MatchLongest(span, index);
 
             if (matchLength > 0)
             {
@@ -723,38 +723,10 @@ public sealed class MarkdownTextChunker : ITextChunker
             _firstChars = SearchValues.Create([.. _lookup.Keys]);
         }
 
-        public string? MatchLongest(string text, int index)
-        {
-            if (index >= text.Length)
-            {
-                return null;
-            }
-
-            if (!_lookup.TryGetValue(text[index], out var candidates))
-            {
-                return null;
-            }
-
-            foreach (var candidate in candidates)
-            {
-                if (index + candidate.Length > text.Length)
-                {
-                    continue;
-                }
-
-                if (text.AsSpan(index, candidate.Length).SequenceEqual(candidate))
-                {
-                    return candidate;
-                }
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Returns the length of the longest matching separator at the given index, or 0 if no match.
         /// </summary>
-        public int MatchLongestOptimized(ReadOnlySpan<char> text, int index)
+        public int MatchLongest(ReadOnlySpan<char> text, int index)
         {
             if (index >= text.Length)
             {
