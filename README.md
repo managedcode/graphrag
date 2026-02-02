@@ -361,15 +361,15 @@ Neo4j support lives in `ManagedCode.GraphRag.Neo4j` and uses the official Bolt d
    You can also override the auth token and driver config:
 
    ```csharp
-builder.Services.AddNeo4jGraphStore("neo4j", options =>
-{
-    options.Uri = "neo4j+s://example.databases.neo4j.io";
-    options.AuthTokenFactory = _ => AuthTokens.Basic("user", "pass");
-    options.ConfigureDriver = config => config.WithMaxConnectionPoolSize(50);
-    // Or bypass everything and provide your own driver:
-    options.DriverFactory = opts => GraphDatabase.Driver(opts.Uri, AuthTokens.None);
-});
-```
+    builder.Services.AddNeo4jGraphStore("neo4j", options =>
+    {
+        options.Uri = "neo4j+s://example.databases.neo4j.io";
+        options.AuthTokenFactory = _ => AuthTokens.Basic("user", "pass");
+        options.ConfigureDriver = config => config.WithMaxConnectionPoolSize(50);
+        // Or bypass everything and provide your own driver:
+        options.DriverFactory = opts => GraphDatabase.Driver(opts.Uri, AuthTokens.None);
+    });
+    ```
 
 ### JanusGraph Setup
 
