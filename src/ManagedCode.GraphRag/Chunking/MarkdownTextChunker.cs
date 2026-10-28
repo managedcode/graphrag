@@ -391,7 +391,6 @@ public sealed class MarkdownTextChunker : ITextChunker
         return GenerateChunksRanges(originalText, offset, workingText, fragments, maxChunk1Size, maxChunkNSize, separatorType, tokenizer, ref firstChunkDone);
     }
 
-
     private List<Range> GenerateChunksRanges(
         string originalText,
         int textOffset,
@@ -691,11 +690,10 @@ public sealed class MarkdownTextChunker : ITextChunker
     internal sealed class SeparatorTrie
     {
         private readonly Dictionary<char, List<string>> _lookup = new();
-        private readonly SearchValues<char> _firstChars;
 
         public int Length { get; }
 
-        public SearchValues<char> FirstChars => _firstChars;
+        public SearchValues<char> FirstChars { get; }
 
         public SeparatorTrie(IEnumerable<string> separators)
         {
@@ -720,7 +718,7 @@ public sealed class MarkdownTextChunker : ITextChunker
             }
 
             // Create SearchValues from first chars for vectorized lookup
-            _firstChars = SearchValues.Create([.. _lookup.Keys]);
+            FirstChars = SearchValues.Create([.. _lookup.Keys]);
         }
 
         /// <summary>

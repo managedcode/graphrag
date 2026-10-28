@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../ManagedCode.GraphRag/ManagedCode.GraphRag.csproj" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <PropertyGroup>
     <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>

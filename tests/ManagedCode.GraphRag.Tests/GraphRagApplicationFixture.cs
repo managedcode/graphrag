@@ -50,8 +50,7 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
         string? postgresConnection = null;
         string? cosmosConnectionString = null;
 
-        _neo4jContainer = new Neo4jBuilder()
-            .WithImage("neo4j:5.23.0-community")
+        _neo4jContainer = new Neo4jBuilder("neo4j:5.23.0-community")
             .WithEnvironment("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
             .WithEnvironment("NEO4J_PLUGINS", "[\"apoc\"]")
             .WithEnvironment("NEO4J_dbms_default__listen__address", "0.0.0.0")
@@ -60,8 +59,7 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
             .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(7687))
             .Build();
 
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("apache/age:latest")
+        _postgresContainer = new PostgreSqlBuilder("apache/age:latest")
             .WithDatabase(PostgresDatabase)
             .WithUsername("postgres")
             .WithPassword(PostgresPassword)
@@ -69,14 +67,13 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
             .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5432))
             .Build();
 
-        _janusContainer = new JanusGraphBuilder()
+        _janusContainer = new JanusGraphBuilder("janusgraph/janusgraph:1.0.0")
             .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(8182))
             .Build();
 
         if (IsCosmosSupported())
         {
-            _cosmosContainer = new CosmosDbBuilder()
-                .WithImage("mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview")
+            _cosmosContainer = new CosmosDbBuilder("mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview")
                 .Build();
         }
 
