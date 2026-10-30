@@ -1,6 +1,7 @@
 # Repository Guidelines
 
 ## Rules to follow
+- Keep native test readiness waits short and scoped to each container. Never raise global test timeouts to hide readiness failures; business-time tests use injected TimeProvider, while container readiness uses real time (creator correction 2026-10-30).
 - Always run `dotnet build GraphRag.slnx` (or the relevant project) before executing any `dotnet test` command.
 - Default to the latest available versions (e.g., Apache AGE `latest`) when selecting dependencies, per user request ("тобі треба latest").
 - Do not create or rely on fake database stores (e.g., `FakePostgresGraphStore`); all tests must use real connectors/backing services.

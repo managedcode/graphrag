@@ -1,6 +1,4 @@
-using System.Globalization;
 using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
 using GraphRag;
 using GraphRag.Storage.Cosmos;
 using GraphRag.Storage.JanusGraph;
@@ -21,9 +19,7 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
     private const string Neo4jPassword = "test1234";
     private const string PostgresPassword = "postgres";
     private const string PostgresDatabase = "graphragdb";
-    private const string ContainerTimeoutEnvVar = "GRAPH_RAG_CONTAINER_TIMEOUT_MINUTES";
-    private static readonly TimeSpan DefaultContainerStartupTimeout = TimeSpan.FromMinutes(30);
-    private static readonly TimeSpan ContainerStartupTimeout = ResolveContainerStartupTimeout();
+    private static readonly TimeSpan ContainerReadinessTimeout = TimeSpan.FromMinutes(1);
 
     private ServiceProvider _serviceProvider = null!;
     private AsyncServiceScope? _scope;
@@ -34,15 +30,6 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
 
     public IServiceProvider Services => _scope?.ServiceProvider ?? throw new InvalidOperationException("The fixture has not been initialized.");
     public string PostgresConnectionString => _postgresContainer?.GetConnectionString() ?? throw new InvalidOperationException("PostgreSQL container is not available.");
-
-    static GraphRagApplicationFixture()
-    {
-        if (TestcontainersSettings.WaitStrategyTimeout is null || TestcontainersSettings.WaitStrategyTimeout < ContainerStartupTimeout)
-        {
-            // Pulling these images can easily exceed the default timeout on fresh machines, so relax it globally.
-            TestcontainersSettings.WaitStrategyTimeout = ContainerStartupTimeout;
-        }
-    }
 
     public async Task InitializeAsync()
     {
@@ -56,7 +43,7 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
             .WithEnvironment("NEO4J_dbms_default__listen__address", "0.0.0.0")
             .WithEnvironment("NEO4J_dbms_default__advertised__address", "localhost")
             .WithEnvironment("NEO4J_AUTH", $"neo4j/{Neo4jPassword}")
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(7687))
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(7687, options => options.WithTimeout(ContainerReadinessTimeout)))
             .Build();
 
         _postgresContainer = new PostgreSqlBuilder("apache/age:latest")
@@ -64,11 +51,11 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
             .WithUsername("postgres")
             .WithPassword(PostgresPassword)
             .WithCleanUp(true)
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5432))
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5432, options => options.WithTimeout(ContainerReadinessTimeout)))
             .Build();
 
         _janusContainer = new JanusGraphBuilder("janusgraph/janusgraph:1.0.0")
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(8182))
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(8182, options => options.WithTimeout(ContainerReadinessTimeout)))
             .Build();
 
         if (IsCosmosSupported())
@@ -154,19 +141,6 @@ public sealed class GraphRagApplicationFixture : IAsyncLifetime
         };
 
         return builder.ConnectionString;
-    }
-
-    private static TimeSpan ResolveContainerStartupTimeout()
-    {
-        var envValue = Environment.GetEnvironmentVariable(ContainerTimeoutEnvVar);
-        if (!string.IsNullOrWhiteSpace(envValue) &&
-            double.TryParse(envValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var minutes) &&
-            minutes > 0)
-        {
-            return TimeSpan.FromMinutes(minutes);
-        }
-
-        return DefaultContainerStartupTimeout;
     }
 
     private async Task EnsurePostgresDatabaseAsync()

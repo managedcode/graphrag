@@ -230,7 +230,7 @@ If the graph is sparse, the pipeline falls back to connected components to ensur
 ## Integration Testing Strategy
 
 - **Real services only.** All graph operations run against containerised Neo4j and Apache AGE/PostgreSQL instances provisioned by Testcontainers.
-- **Extended startup window.** The integration fixture raises `TestcontainersSettings.WaitStrategyTimeout` to 30 minutes (override via `GRAPH_RAG_CONTAINER_TIMEOUT_MINUTES`) so first-time Docker pulls for Cosmos, Janus, or AGE have enough time to complete before readiness checks fail.
+- **Bounded readiness.** PostgreSQL/AGE, Neo4j and JanusGraph use their native Testcontainers readiness strategies with a one-minute timeout for each container. The fixture does not raise process-wide wait limits. Diagnose a failed startup instead of extending its deadline.
 - **Cosmos tests opt-in.** The Cosmos DB emulator only starts when `GRAPH_RAG_ENABLE_COSMOS=true`; otherwise the keyed Cosmos services are skipped so CI runs faster.
 - **Deterministic heuristics.** `StubEmbeddingGenerator` guarantees stable embeddings so semantic-dedup and token-budget assertions remain reliable.
 - **Cross-store validation.** Shared integration fixtures verify that workflows succeed against each adapter (Cosmos tests activate when the emulator connection string is present).
@@ -470,3 +470,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for detailed guidance.
 - GraphRAG is © Microsoft. This repository reimplements the pipelines for the .NET ecosystem while staying aligned with the official documentation and diagrams.
 
 Have questions or feedback? Open an issue or start a discussion—we’re actively evolving the .NET port and welcome contributions! 🚀
+
+## DRIFT query over prepared graphs
+
+`DriftSearchEngine` provides bounded primer, follow-up retrieval and evidence synthesis through a host-owned MEAI client. It can use existing JSON-LD retrieval without rebuilding knowledge or adding a graph database. See [DRIFT query](docs/DriftSearch.md) for its contracts, limits, citation validation and provider-backed acceptance scenarios.

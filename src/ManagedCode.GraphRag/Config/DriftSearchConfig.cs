@@ -28,6 +28,8 @@ public sealed class DriftSearchConfig
 
     public int Depth { get; set; } = 3;
 
+    public int MaximumModelCalls { get; set; } = 32;
+
     public double LocalSearchTextUnitProportion { get; set; } = 0.9;
 
     public double LocalSearchCommunityProportion { get; set; } = 0.1;
